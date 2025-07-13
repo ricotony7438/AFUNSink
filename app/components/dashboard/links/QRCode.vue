@@ -27,7 +27,7 @@ const options = {
 },
   dotsOptions: { type: 'dots', color: '#000000', gradient: null },
   backgroundOptions: { color: '#ffffff', gradient: null },
-  image: props.image,
+  // 移除或注释：i image: props.image,
   dotsOptionsHelper: {
     colorType: { single: true, gradient: false },
     gradient: {
