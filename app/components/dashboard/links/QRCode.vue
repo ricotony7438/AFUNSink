@@ -19,7 +19,12 @@ const options = {
   data: props.data,
   margin: 10,
   qrOptions: { typeNumber: '0', mode: 'Byte', errorCorrectionLevel: 'Q' },
-  imageOptions: { hideBackgroundDots: true, imageSize: 0.4, margin: 2 },
+  imageOptions: { 
+  hideBackgroundDots: true, 
+  imageSize: 0.4, 
+  margin: 2,
+  crossOrigin: 'anonymous'  // 新增
+},
   dotsOptions: { type: 'dots', color: '#000000', gradient: null },
   backgroundOptions: { color: '#ffffff', gradient: null },
   image: props.image,
@@ -90,8 +95,25 @@ function downloadQRCode() {
   })
 }
 
-onMounted(() => {
-  qrCode.append(qrCodeEl.value)
+onMounted(async () => {
+  if (props.image) {
+    const img = new Image();
+    img.src = props.image;
+    img.crossOrigin = 'anonymous';  // 强化 CORS
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = () => {
+        console.error('Image load failed:', props.image);
+        resolve();  // 失败时继续渲染无 logo
+      };
+    });
+  }
+  try {
+    qrCode.append(qrCodeEl.value);
+    console.log('QR appended successfully');  // 用于调试
+  } catch (error) {
+    console.error('QR append failed:', error);
+  }
 })
 </script>
 
