@@ -18,7 +18,7 @@ const { title, email, telegram, blog, twitter, mastodon, github } = useAppConfig
         target="_blank"
         title="HTML.ZONE"
       >
-        &copy; {{ new Date().getFullYear() }} Products of OWEN
+        &copy; {{ new Date().getFullYear() }} Created by OWEN
       </a>
       <span
         class="inline-flex justify-center mt-4 space-x-5 sm:ml-auto sm:mt-0 sm:justify-start"
