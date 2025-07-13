@@ -24,7 +24,7 @@ function getLinkHost(url) {
 }
 
 const shortLink = computed(() => `${origin}/${props.link.slug}`)
-const linkIcon = computed(() => `https://unavatar.io/${getLinkHost(props.link.url)}?fallback=https://sink.cool/icon.png`)
+const linkIcon = computed(() => `https://www.google.com/s2/favicons?sz=64&domain=${getLinkHost(props.link.url)}`)
 
 const { copy, copied } = useClipboard({ source: shortLink.value, copiedDuring: 400 })
 
