@@ -96,21 +96,26 @@ function downloadQRCode() {
 }
 
 onMounted(async () => {
+  let imageLoaded = true;
   if (props.image) {
     const img = new Image();
     img.src = props.image;
-    img.crossOrigin = 'anonymous';  // 强化 CORS
-    await new Promise((resolve, reject) => {
+    img.crossOrigin = 'anonymous';
+    await new Promise((resolve) => {
       img.onload = resolve;
       img.onerror = () => {
         console.error('Image load failed:', props.image);
-        resolve();  // 失败时继续渲染无 logo
+        imageLoaded = false;
+        resolve();
       };
     });
   }
+  if (!imageLoaded) {
+    qrCode.update({ image: '' });  // 移除 logo
+  }
   try {
     qrCode.append(qrCodeEl.value);
-    console.log('QR appended successfully');  // 用于调试
+    console.log('QR appended successfully');
   } catch (error) {
     console.error('QR append failed:', error);
   }
