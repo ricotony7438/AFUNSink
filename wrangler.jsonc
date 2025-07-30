@@ -1,12 +1,12 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "AFUNSink",
-  "main": "dist/server/index.mjs",
+  "main": "./dist/worker.js",
   "assets": {
     "binding": "ASSETS",
     "directory": "dist/public"
   },
-  "compatibility_date": "2025-05-08",
+  "compatibility_date": "2025-07-31",
   "compatibility_flags": [
     "nodejs_compat"
   ],
