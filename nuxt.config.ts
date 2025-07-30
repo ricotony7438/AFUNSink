@@ -85,6 +85,12 @@ export default defineNuxtConfig({
         },
       },
     },
+    // 添加外部化配置以解决 node:buffer 错误
+    esbuild: {
+      options: {
+        external: ['node:buffer', 'node:stream', 'node:crypto']
+      }
+    }
   },
 
   hub: {
