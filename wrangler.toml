@@ -1,0 +1,18 @@
+name = "AFUNSink"
+main = "./dist/_worker.js"
+compatibility_flags = ["nodejs_compat"]
+compatibility_date = "2025-07-31"
+keep_vars = true
+upload_source_maps = true
+[assets]
+binding = "ASSETS"
+directory = "dist/public"
+[ai]
+binding = "AI"
+[[analytics_engine_datasets]]
+binding = "ANALYTICS"
+dataset = "sink"
+[[kv_namespaces]]
+binding = "KV"
+id = "6f01ba36572b4cf6bead465ff3ac53ab"
+pages_build_output_dir = "dist"
