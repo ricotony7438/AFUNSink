@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "sink",
+  "name": "AFUNSink",
   "main": "dist/server/index.mjs",
   "assets": {
     "binding": "ASSETS",
@@ -24,7 +24,7 @@
   "kv_namespaces": [
     {
       "binding": "KV",
-      "id": "ef93d42dc4b34969bab404d2e80f8dd3" // IMPORTANT: Change this to your KV namespace ID
+      "id": "6f01ba36572b4cf6bead465ff3ac53ab" // IMPORTANT: Change this to your KV namespace ID
     }
   ]
 }
