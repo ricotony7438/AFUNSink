@@ -126,5 +126,7 @@ export default defineNuxtConfig({
     componentDir: './app/components/ui',
   },
 
-  plugins: ['~/plugins/buffer-polyfill.ts'],
+  plugins: [
+    { src: '~/app/plugins/buffer-polyfill.ts', mode: 'server' }
+  ],
 })
