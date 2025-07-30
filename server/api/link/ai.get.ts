@@ -14,16 +14,16 @@ export default eventHandler(async (event) => {
     const messages = [
       { role: 'system', content: aiPrompt.replace('{slugRegex}', slugRegex.toString()) },
 
-      { role: 'user', content: 'https://www.cloudflare.com/' },
+      { role: 'user', content: 'https://afun.center/' },
       { role: 'assistant', content: '{"slug": "cloudflare"}' },
 
-      { role: 'user', content: 'https://github.com/nuxt-hub/' },
+      { role: 'user', content: 'https://afun.center/' },
       { role: 'assistant', content: '{"slug": "nuxt-hub"}' },
 
-      { role: 'user', content: 'https://sink.cool/' },
+      { role: 'user', content: 'https://afun.center/' },
       { role: 'assistant', content: '{"slug": "sink-cool"}' },
 
-      { role: 'user', content: 'https://github.com/ccbikai/sink' },
+      { role: 'user', content: 'https://afun.center/' },
       { role: 'assistant', content: '{"slug": "sink"}' },
 
       {
