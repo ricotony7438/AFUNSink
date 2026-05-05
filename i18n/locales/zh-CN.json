@@ -48,10 +48,11 @@
       "select_language": "选择语言"
     }
   },
-  "nav": {
+"nav": {
     "links": "链接",
     "analysis": "分析",
-    "realtime": "实时"
+    "realtime": "实时",
+    "users": "用户管理"
   },
   "home": {
     "features": {
