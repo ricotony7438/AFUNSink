@@ -68,12 +68,21 @@ export default eventHandler(async (event) => {
   const prepared: Array<{ link: any, row: number, error?: string }> = []
   const seenSlugsInBatch = new Set<string>()
 
+// Day 2: 当前登录用户(由 server/middleware/2.auth.ts 注入)
+  const currentUser = (event.context as any).user
+  const ownerUsername = currentUser?.username
+
   body.links.forEach((raw, idx) => {
     const row = idx + 1
     try {
       const link = LinkSchema.parse(raw)
       if (!caseSensitive)
         link.slug = link.slug.toLowerCase()
+
+      // Day 2: 写入当前登录用户为 owner
+      if (ownerUsername) {
+        (link as any).owner = ownerUsername
+      }
 
       // 批次内 slug 去重(LinkSchema 会自动给 slug,理论上随机生成不会撞,但用户手填可能撞)
       if (seenSlugsInBatch.has(link.slug)) {

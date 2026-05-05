@@ -26,8 +26,14 @@ defineRouteMeta({
 
 export default eventHandler(async (event) => {
   const link = await readValidatedBody(event, LinkSchema.parse)
-
   const { caseSensitive } = useRuntimeConfig(event)
+
+  // Day 2: 写入当前登录用户为 owner
+  // event.context.user 由 server/middleware/2.auth.ts 注入
+  const user = (event.context as any).user
+  if (user?.username) {
+    (link as any).owner = user.username
+  }
 
   if (!caseSensitive) {
     link.slug = link.slug.toLowerCase()
