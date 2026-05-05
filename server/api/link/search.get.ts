@@ -4,81 +4,95 @@ interface Link {
   comment?: string
 }
 
+// 单次 KV.list 拿多少 keys
+// 控制在 30 以内,避免单批 KV.getWithMetadata 并发超过 Workers 限制
+const KV_PAGE_SIZE = 30
+// 整个扫描最大页数:30 * 50 = 1500 条 keys 上限
+const MAX_PAGES = 50
+
 export default eventHandler(async (event) => {
   // Day 4: 拿当前用户用于过滤
   const currentUser = requireAuth(event)
   const isAdmin = currentUser.role === 'admin'
-
   const { cloudflare } = event.context
   const { KV } = cloudflare.env
   const list: Link[] = []
-  let finalCursor: string | undefined
-  try {
-    while (true) {
-      const { keys, list_complete, cursor } = await KV.list({
-        prefix: `link:`,
-        limit: 1000,
-        cursor: finalCursor,
-      })
-      finalCursor = cursor
-      if (Array.isArray(keys)) {
-        for (const key of keys) {
-          try {
-            // Day 4: user 必须读出 link 才能拿到 owner 字段判断权限
-            // admin 不需要(但如果 metadata 不全还是要读 link 兜底)
-            const needFullRead = !isAdmin || !key.metadata?.url
+  let cursor: string | undefined
+  let pagesScanned = 0
 
-            if (!needFullRead && key.metadata?.url) {
-              // admin 走快路径:metadata 够了
-              list.push({
+  try {
+    while (pagesScanned < MAX_PAGES) {
+      const listOptions: { prefix: string, limit: number, cursor?: string } = {
+        prefix: 'link:',
+        limit: KV_PAGE_SIZE,
+      }
+      if (cursor) listOptions.cursor = cursor
+
+      const { keys, list_complete, cursor: nextCursor } = await KV.list(listOptions)
+
+      if (Array.isArray(keys) && keys.length > 0) {
+        // 这一批的 keys 并发处理(每批最多 30 条,在 Workers 并发限制内)
+        const batchResults = await Promise.all(keys.map(async (key) => {
+          try {
+            // admin + metadata 完整 → 走快路径
+            if (isAdmin && key.metadata?.url) {
+              return {
                 slug: key.name.replace('link:', ''),
-                url: key.metadata.url,
-                comment: key.metadata.comment,
+                url: (key.metadata as any).url,
+                comment: (key.metadata as any).comment,
+              } as Link
+            }
+
+            // user 或 metadata 不全:必须 KV.get 取 link 对象
+            const { metadata, value: link } = await KV.getWithMetadata(key.name, { type: 'json' })
+            if (!link) return null
+
+            // Day 4: 权限过滤
+            if (!isAdmin && (link as any).owner !== currentUser.username) {
+              return null
+            }
+
+            // Forward compatible: 给老链接补 metadata
+            if (!key.metadata?.url) {
+              await KV.put(key.name, JSON.stringify(link), {
+                expiration: (metadata as any)?.expiration,
+                metadata: {
+                  ...(metadata as any),
+                  url: (link as any).url,
+                  comment: (link as any).comment,
+                },
               })
             }
-            else {
-              // user 或者旧链接没 metadata:必须 KV.get 取 link 完整对象
-              const { metadata, value: link } = await KV.getWithMetadata(key.name, { type: 'json' })
-              if (link) {
-                // Day 4: 权限过滤
-                if (!isAdmin && link.owner !== currentUser.username) {
-                  continue
-                }
 
-                list.push({
-                  slug: key.name.replace('link:', ''),
-                  url: link.url,
-                  comment: link.comment,
-                })
-
-                // Forward compatible: 给老链接补 metadata
-                if (!key.metadata?.url) {
-                  await KV.put(key.name, JSON.stringify(link), {
-                    expiration: metadata?.expiration,
-                    metadata: {
-                      ...metadata,
-                      url: link.url,
-                      comment: link.comment,
-                    },
-                  })
-                }
-              }
-            }
+            return {
+              slug: key.name.replace('link:', ''),
+              url: (link as any).url,
+              comment: (link as any).comment,
+            } as Link
           }
           catch (err) {
-            console.error(`Error processing key ${key.name}:`, err)
-            continue
+            console.error(`[search] Error processing key ${key.name}:`, err)
+            return null
           }
+        }))
+
+        // 把这一批的结果加进总列表
+        for (const item of batchResults) {
+          if (item) list.push(item)
         }
       }
-      if (!keys || list_complete) {
-        break
-      }
+
+      pagesScanned++
+
+      if (list_complete) break
+      cursor = nextCursor
+      if (!cursor) break
     }
+
     return list
   }
-  catch (err) {
-    console.error('Error fetching link list:', err)
+  catch (err: any) {
+    console.error('[search] error:', err?.message, err?.stack)
     throw createError({
       statusCode: 500,
       message: 'Failed to fetch link list',
